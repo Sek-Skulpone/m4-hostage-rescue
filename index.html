@@ -55,6 +55,56 @@
   .chamber-svg{ width:100%; height:auto; display:block; }
   .waterline-label{ position:absolute; left:10px; bottom:8px; font-family:'Chakra Petch',sans-serif; font-size:.68rem; letter-spacing:.06em; color:var(--water-foam); text-transform:uppercase; text-shadow:0 1px 3px rgba(0,0,0,.6); }
 
+  .wave{ transform-box: fill-box; }
+  .bubble{ transform-box: fill-box; transform-origin: 50% 50%; opacity:0; }
+  @media (prefers-reduced-motion:no-preference){
+    .wiggle-body{ transform-box: fill-box; transform-origin: 50% 68%; animation: struggle 2.3s ease-in-out infinite; }
+    .wiggle-head{ transform-box: fill-box; transform-origin: 50% 60%; animation: head-shake 2.3s ease-in-out infinite; }
+    .wiggle-leg-l{ transform-box: fill-box; transform-origin: 50% 0%; animation: kick-l 2.3s ease-in-out infinite; }
+    .wiggle-leg-r{ transform-box: fill-box; transform-origin: 50% 0%; animation: kick-r 2.3s ease-in-out infinite; }
+    #hostageGroup.danger .wiggle-body{ animation: struggle-fast .65s ease-in-out infinite; }
+    #hostageGroup.danger .wiggle-head{ animation: head-shake-fast .65s ease-in-out infinite; }
+    #hostageGroup.danger .wiggle-leg-l{ animation: kick-l-fast .5s ease-in-out infinite; }
+    #hostageGroup.danger .wiggle-leg-r{ animation: kick-r-fast .5s ease-in-out infinite; }
+
+    @keyframes struggle{
+      0%,100%{ transform: rotate(0deg) translateX(0); }
+      20%{ transform: rotate(-5deg) translateX(-1.2px); }
+      45%{ transform: rotate(3deg) translateX(1px); }
+      70%{ transform: rotate(-2deg) translateX(-0.6px); }
+      85%{ transform: rotate(2deg) translateX(0.5px); }
+    }
+    @keyframes struggle-fast{
+      0%,100%{ transform: rotate(0deg) translateX(0) translateY(0); }
+      25%{ transform: rotate(-8deg) translateX(-2.2px) translateY(1px); }
+      50%{ transform: rotate(6deg) translateX(2px) translateY(-1px); }
+      75%{ transform: rotate(-6deg) translateX(-1.4px) translateY(1px); }
+    }
+    @keyframes head-shake{ 0%,50%,100%{ transform:rotate(0deg); } 25%{ transform:rotate(5deg); } 75%{ transform:rotate(-5deg); } }
+    @keyframes head-shake-fast{ 0%,100%{ transform:rotate(0deg); } 30%{ transform:rotate(9deg); } 60%{ transform:rotate(-9deg); } }
+    @keyframes kick-l{ 0%,60%,100%{ transform:rotate(0deg); } 30%{ transform:rotate(14deg); } }
+    @keyframes kick-r{ 0%,30%,100%{ transform:rotate(0deg); } 60%{ transform:rotate(-14deg); } }
+    @keyframes kick-l-fast{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(20deg); } }
+    @keyframes kick-r-fast{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-20deg); } }
+
+    .wave-1{ animation: wave-drift-1 3.4s linear infinite; }
+    .wave-2{ animation: wave-drift-2 4.6s linear infinite; }
+    @keyframes wave-drift-1{ 0%{ transform:translateX(0); } 100%{ transform:translateX(-40px); } }
+    @keyframes wave-drift-2{ 0%{ transform:translateX(0); } 100%{ transform:translateX(40px); } }
+
+    .bubble{ animation: bubble-float 3.4s linear infinite; }
+    .bubble-2{ animation-delay:.8s; animation-duration:2.6s; }
+    .bubble-3{ animation-delay:1.6s; animation-duration:4s; }
+    .bubble-4{ animation-delay:.3s; animation-duration:3s; }
+    .bubble-5{ animation-delay:2.1s; animation-duration:3.7s; }
+    @keyframes bubble-float{
+      0%{ transform: translateY(0) translateX(0); opacity:0; }
+      10%{ opacity:.6; }
+      90%{ opacity:.5; }
+      100%{ transform: translateY(-70px) translateX(4px); opacity:0; }
+    }
+  }
+
   /* ---- terminal card ---- */
   .terminal{ background:var(--panel-2); border:1px solid var(--line); border-radius:14px; padding:20px 20px 18px; box-shadow:var(--shadow); }
   .terminal-eyebrow{ font-family:'Chakra Petch',sans-serif; font-size:.72rem; font-weight:600; letter-spacing:.1em; color:var(--ink-faint); text-transform:uppercase; margin:0 0 10px; }
@@ -183,6 +233,7 @@
             <stop offset="0%" stop-color="var(--water-b)"/>
             <stop offset="100%" stop-color="var(--water-a)"/>
           </linearGradient>
+          <clipPath id="waterClip"><rect id="waterClipRect" x="0" y="220" width="300" height="0"/></clipPath>
         </defs>
         <rect x="0" y="0" width="300" height="220" fill="var(--panel-3)"/>
         <g stroke="var(--line)" stroke-width="1">
@@ -191,16 +242,28 @@
           <line x1="0" y1="180" x2="10" y2="180"/>
         </g>
         <g id="hostageGroup" transform="translate(150,150)">
-          <rect x="-16" y="14" width="32" height="8" rx="2" fill="#3A536200"/>
-          <circle cx="0" cy="-14" r="10" fill="#F0C9A0"/>
-          <path d="M -10 -16 A 10 8 0 0 1 10 -16 L 10 -20 L -10 -20 Z" fill="#3D4A5A"/>
-          <rect x="-9" y="-4" width="18" height="20" rx="5" fill="#E4573E"/>
-          <line x1="-9" y1="2" x2="9" y2="2" stroke="#B23F2A" stroke-width="2.4"/>
-          <line x1="-8" y1="16" x2="-8" y2="26" stroke="#F0C9A0" stroke-width="4" stroke-linecap="round"/>
-          <line x1="8" y1="16" x2="8" y2="26" stroke="#F0C9A0" stroke-width="4" stroke-linecap="round"/>
+          <g class="wiggle-body">
+            <rect x="-16" y="14" width="32" height="8" rx="2" fill="#3A536200"/>
+            <line class="wiggle-leg-l" x1="-8" y1="16" x2="-8" y2="26" stroke="#F0C9A0" stroke-width="4" stroke-linecap="round"/>
+            <line class="wiggle-leg-r" x1="8" y1="16" x2="8" y2="26" stroke="#F0C9A0" stroke-width="4" stroke-linecap="round"/>
+            <rect x="-9" y="-4" width="18" height="20" rx="5" fill="#E4573E"/>
+            <line x1="-9" y1="2" x2="9" y2="2" stroke="#B23F2A" stroke-width="2.4"/>
+            <circle class="wiggle-head" cx="0" cy="-14" r="10" fill="#F0C9A0"/>
+            <path class="wiggle-head" d="M -10 -16 A 10 8 0 0 1 10 -16 L 10 -20 L -10 -20 Z" fill="#3D4A5A"/>
+          </g>
+        </g>
+        <g clip-path="url(#waterClip)">
+          <circle class="bubble bubble-1" cx="60" cy="210" r="2.2" fill="var(--water-foam)" opacity=".6"/>
+          <circle class="bubble bubble-2" cx="120" cy="205" r="1.6" fill="var(--water-foam)" opacity=".5"/>
+          <circle class="bubble bubble-3" cx="200" cy="215" r="2.6" fill="var(--water-foam)" opacity=".55"/>
+          <circle class="bubble bubble-4" cx="240" cy="208" r="1.8" fill="var(--water-foam)" opacity=".45"/>
+          <circle class="bubble bubble-5" cx="90" cy="212" r="1.4" fill="var(--water-foam)" opacity=".4"/>
         </g>
         <rect id="waterRect" x="0" y="220" width="300" height="0" fill="url(#waterGrad)" opacity=".88"/>
-        <rect id="waterFoam" x="0" y="220" width="300" height="3" fill="var(--water-foam)" opacity=".7"/>
+        <g id="waterWaveGroup" transform="translate(0,220)">
+          <path class="wave wave-1" d="M0,6 C25,0 50,12 75,6 C100,0 125,12 150,6 C175,0 200,12 225,6 C250,0 275,12 300,6 L300,14 L0,14 Z" fill="var(--water-foam)" opacity=".55"/>
+          <path class="wave wave-2" d="M-40,6 C-15,0 10,12 35,6 C60,0 85,12 110,6 C135,0 160,12 185,6 C210,0 235,12 260,6 L260,14 L-40,14 Z" fill="var(--water-foam)" opacity=".35"/>
+        </g>
       </svg>
       <span class="waterline-label" id="waterlineLabel">ระดับน้ำ 0%</span>
     </div>
@@ -285,7 +348,9 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   var submitBtn = document.getElementById("submitBtn");
   var feedback = document.getElementById("feedback");
   var waterRect = document.getElementById("waterRect");
-  var waterFoam = document.getElementById("waterFoam");
+  var waterWaveGroup = document.getElementById("waterWaveGroup");
+  var waterClipRect = document.getElementById("waterClipRect");
+  var hostageGroup = document.getElementById("hostageGroup");
   var waterlineLabel = document.getElementById("waterlineLabel");
   var winTime = document.getElementById("winTime");
   var loseLevel = document.getElementById("loseLevel");
@@ -347,9 +412,13 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     var h = frac * 220;
     waterRect.setAttribute("y", 220 - h);
     waterRect.setAttribute("height", h);
-    waterFoam.setAttribute("y", 220 - h);
+    waterWaveGroup.setAttribute("transform", "translate(0," + (220 - h) + ")");
+    waterClipRect.setAttribute("y", 220 - h);
+    waterClipRect.setAttribute("height", h);
     waterlineLabel.textContent = "ระดับน้ำ " + Math.round(frac*100) + "%";
-    timerChip.classList.toggle("danger", secondsLeft <= 60);
+    var danger = secondsLeft <= 60;
+    timerChip.classList.toggle("danger", danger);
+    hostageGroup.classList.toggle("danger", danger);
   }
 
   function tick(){
