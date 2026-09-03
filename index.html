@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>ภารกิจช่วยตัวประกัน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --abyss:#071822; --panel:#0F2C3D; --panel-2:#153548; --panel-3:#1B4258;
+    --water-a:#134B62; --water-b:#2FA8C9; --water-foam:#8FE3F5;
+    --alarm:#FF5A3C; --alarm-soft:#3A1C16;
+    --rescue:#FFC53D; --rescue-soft:#3A2E10;
+    --good:#3DDC97; --good-soft:#0F3327;
+    --ink:#EAF6F9; --ink-dim:#96BFCC; --ink-faint:#5D8494;
+    --line: rgba(234,246,249,.14); --line-strong: rgba(234,246,249,.28);
+    --shadow: 0 10px 30px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  [hidden]{display:none!important;}
+  body{
+    background:radial-gradient(120% 100% at 50% -10%, #0C2836 0%, var(--abyss) 55%, #04101A 100%);
+    color:var(--ink); font-family:'Sarabun',sans-serif; font-size:16px; line-height:1.6;
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display,.hud-num{ font-family:'Chakra Petch',sans-serif; text-wrap:balance; }
+  .eqn{ font-variant-numeric:tabular-nums; }
+
+  .stage{ max-width:520px; margin:0 auto; min-height:100vh; padding:20px 18px 40px; display:flex; flex-direction:column; gap:16px; }
+
+  /* ---- top status bar ---- */
+  .statusbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .brand{ display:flex; align-items:center; gap:9px; }
+  .brand-dot{ width:9px; height:9px; border-radius:50%; background:var(--alarm); box-shadow:0 0 10px var(--alarm); }
+  @media (prefers-reduced-motion:no-preference){ .brand-dot.live{ animation:pulse-dot 1.6s ease-in-out infinite; } }
+  @keyframes pulse-dot{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+  .brand-text{ font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:.82rem; letter-spacing:.08em; color:var(--ink-dim); text-transform:uppercase; }
+
+  .timer-chip{ display:flex; align-items:center; gap:8px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:7px 14px; }
+  .timer-chip .hud-num{ font-size:1.35rem; font-weight:700; color:var(--rescue); letter-spacing:.02em; }
+  .timer-chip.danger .hud-num{ color:var(--alarm); }
+  .timer-label{ font-size:.68rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em; }
+
+  /* ---- level pip trail ---- */
+  .pip-trail{ display:flex; gap:6px; justify-content:center; }
+  .pip{ width:100%; height:6px; border-radius:4px; background:var(--panel-2); border:1px solid var(--line); }
+  .pip.done{ background:var(--good); border-color:var(--good); }
+  .pip.current{ background:var(--rescue); border-color:var(--rescue); }
+
+  /* ---- flood chamber scene ---- */
+  .chamber-wrap{ position:relative; border-radius:16px; overflow:hidden; border:1px solid var(--line-strong); box-shadow:var(--shadow); background:var(--panel); }
+  .chamber-svg{ width:100%; height:auto; display:block; }
+  .waterline-label{ position:absolute; left:10px; bottom:8px; font-family:'Chakra Petch',sans-serif; font-size:.68rem; letter-spacing:.06em; color:var(--water-foam); text-transform:uppercase; text-shadow:0 1px 3px rgba(0,0,0,.6); }
+
+  /* ---- terminal card ---- */
+  .terminal{ background:var(--panel-2); border:1px solid var(--line); border-radius:14px; padding:20px 20px 18px; box-shadow:var(--shadow); }
+  .terminal-eyebrow{ font-family:'Chakra Petch',sans-serif; font-size:.72rem; font-weight:600; letter-spacing:.1em; color:var(--ink-faint); text-transform:uppercase; margin:0 0 10px; }
+  .problem{ font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:1.85rem; text-align:center; margin:0 0 18px; color:var(--ink); }
+  .problem .op{ color:var(--water-foam); margin:0 6px; }
+
+  .answer-row{ display:flex; gap:10px; }
+  .answer-input{
+    flex:1; min-width:0; background:var(--panel); border:1.5px solid var(--line-strong); border-radius:10px;
+    padding:13px 14px; font-family:'Chakra Petch',sans-serif; font-size:1.3rem; color:var(--ink); text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .answer-input:focus{ outline:none; border-color:var(--rescue); box-shadow:0 0 0 3px rgba(255,197,61,.18); }
+  .answer-input.shake{ border-color:var(--alarm); }
+  @media (prefers-reduced-motion:no-preference){
+    .answer-input.shake{ animation:shake .34s ease; }
+  }
+  @keyframes shake{ 0%,100%{ transform:translateX(0); } 25%{ transform:translateX(-7px); } 75%{ transform:translateX(7px); } }
+
+  .btn{
+    font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:1rem; letter-spacing:.02em;
+    border:none; border-radius:10px; padding:13px 22px; cursor:pointer; transition:filter .12s, transform .08s;
+  }
+  .btn:active{ transform:scale(.97); }
+  .btn-rescue{ background:var(--rescue); color:#241804; }
+  .btn-rescue:hover{ filter:brightness(1.08); }
+  .btn-ghost{ background:transparent; color:var(--ink-dim); border:1px solid var(--line-strong); }
+  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-dim); }
+  .btn-block{ width:100%; }
+
+  .feedback{ min-height:1.4em; text-align:center; font-size:.9rem; font-weight:600; margin-top:12px; }
+  .feedback.good{ color:var(--good); }
+  .feedback.bad{ color:var(--alarm); }
+
+  /* ---- briefing / end screens ---- */
+  .card{ background:var(--panel-2); border:1px solid var(--line); border-radius:16px; padding:28px 24px; box-shadow:var(--shadow); text-align:center; }
+  .card h1{ font-size:1.7rem; margin:10px 0 10px; color:var(--ink); }
+  .card p{ color:var(--ink-dim); margin:0 0 18px; }
+  .card .icon{ font-size:2.6rem; margin-bottom:4px; }
+  .stat-row{ display:flex; gap:10px; justify-content:center; margin:0 0 20px; }
+  .stat{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 16px; min-width:96px; }
+  .stat .n{ font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:1.3rem; color:var(--rescue); }
+  .stat .l{ font-size:.7rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; }
+
+  footer{ text-align:center; color:var(--ink-faint); font-size:.76rem; padding:6px 0 0; }
+
+  .field{ text-align:left; margin-bottom:12px; }
+  .field label{ display:block; font-size:.8rem; color:var(--ink-dim); margin-bottom:5px; font-weight:500; }
+  .field input{
+    width:100%; background:var(--panel); border:1.5px solid var(--line-strong); border-radius:10px;
+    padding:12px 13px; font-family:'Sarabun',sans-serif; font-size:1.02rem; color:var(--ink);
+  }
+  .field input:focus{ outline:none; border-color:var(--rescue); box-shadow:0 0 0 3px rgba(255,197,61,.18); }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; }
+  .link-btn{
+    background:none; border:none; color:var(--water-foam); font-family:'Sarabun',sans-serif; font-size:.85rem;
+    text-decoration:underline; cursor:pointer; padding:6px; margin-top:4px;
+  }
+  .link-btn:hover{ color:var(--rescue); }
+
+  .teacher-table-wrap{ overflow-x:auto; margin:0 0 18px; border:1px solid var(--line); border-radius:10px; }
+  table.teacher-table{ width:100%; border-collapse:collapse; font-size:.85rem; }
+  table.teacher-table th, table.teacher-table td{ padding:9px 10px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap; }
+  table.teacher-table th{ background:var(--panel-3); color:var(--ink-dim); font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; }
+  table.teacher-table td{ color:var(--ink); }
+  table.teacher-table .win{ color:var(--good); font-weight:600; }
+  table.teacher-table .lose{ color:var(--alarm); font-weight:600; }
+  .teacher-empty{ color:var(--ink-faint); padding:20px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="statusbar">
+    <div class="brand">
+      <span class="brand-dot" id="brandDot"></span>
+      <span class="brand-text">ภารกิจกู้ภัย</span>
+    </div>
+    <div class="timer-chip" id="timerChip">
+      <span class="timer-label">เวลาคงเหลือ</span>
+      <span class="hud-num eqn" id="timerText">10:00</span>
+    </div>
+  </div>
+
+  <!-- BRIEFING -->
+  <section class="card" id="screenBriefing">
+    <div class="icon">🌊</div>
+    <h1>ภารกิจช่วยตัวประกัน</h1>
+    <p>ตัวประกันถูกมัดไว้ในห้องใต้ดินที่น้ำกำลังท่วมสูงขึ้นเรื่อยๆ คุณมีเวลา <strong>10 นาที</strong> ในการไข <strong>10 ด่าน</strong> โจทย์บวกจำนวนเต็ม — ตอบถูกครบทุกด่านก่อนน้ำท่วมถึง เพื่อช่วยตัวประกันออกมาให้ทัน!</p>
+    <div class="field">
+      <label for="inName">ชื่อ-นามสกุล</label>
+      <input type="text" id="inName" placeholder="ชื่อของคุณ">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="inClass">ชั้น</label>
+        <input type="text" id="inClass" placeholder="เช่น ม.4/1">
+      </div>
+      <div class="field">
+        <label for="inNumber">เลขที่</label>
+        <input type="text" id="inNumber" inputmode="numeric" placeholder="เช่น 12">
+      </div>
+    </div>
+    <button class="btn btn-rescue btn-block" id="startBtn" type="button">เริ่มภารกิจ</button>
+    <p id="startWarning" class="feedback bad" hidden>กรอกชื่อ ชั้น และเลขที่ก่อนเริ่มภารกิจ</p>
+    <button class="link-btn" id="teacherViewBtn" type="button">ครูดูคะแนนย้อนหลัง</button>
+  </section>
+
+  <!-- TEACHER VIEW -->
+  <section class="card" id="screenTeacher" hidden>
+    <h1>คะแนนย้อนหลัง</h1>
+    <p id="teacherSubtitle">กำลังโหลดข้อมูล...</p>
+    <div class="teacher-table-wrap" id="teacherTableWrap"></div>
+    <button class="btn btn-ghost btn-block" id="teacherBackBtn" type="button">กลับหน้าแรก</button>
+  </section>
+
+  <!-- PLAY -->
+  <section id="screenPlay" hidden>
+    <div class="pip-trail" id="pipTrail"></div>
+
+    <div class="chamber-wrap">
+      <svg class="chamber-svg" id="chamberSvg" viewBox="0 0 300 220" preserveAspectRatio="none" role="img" aria-label="ห้องน้ำท่วมกับตัวประกัน">
+        <defs>
+          <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--water-b)"/>
+            <stop offset="100%" stop-color="var(--water-a)"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="300" height="220" fill="var(--panel-3)"/>
+        <g stroke="var(--line)" stroke-width="1">
+          <line x1="0" y1="20" x2="10" y2="20"/><line x1="0" y1="60" x2="10" y2="60"/>
+          <line x1="0" y1="100" x2="10" y2="100"/><line x1="0" y1="140" x2="10" y2="140"/>
+          <line x1="0" y1="180" x2="10" y2="180"/>
+        </g>
+        <g id="hostageGroup" transform="translate(150,150)">
+          <rect x="-16" y="14" width="32" height="8" rx="2" fill="#3A536200"/>
+          <circle cx="0" cy="-14" r="10" fill="#F0C9A0"/>
+          <path d="M -10 -16 A 10 8 0 0 1 10 -16 L 10 -20 L -10 -20 Z" fill="#3D4A5A"/>
+          <rect x="-9" y="-4" width="18" height="20" rx="5" fill="#E4573E"/>
+          <line x1="-9" y1="2" x2="9" y2="2" stroke="#B23F2A" stroke-width="2.4"/>
+          <line x1="-8" y1="16" x2="-8" y2="26" stroke="#F0C9A0" stroke-width="4" stroke-linecap="round"/>
+          <line x1="8" y1="16" x2="8" y2="26" stroke="#F0C9A0" stroke-width="4" stroke-linecap="round"/>
+        </g>
+        <rect id="waterRect" x="0" y="220" width="300" height="0" fill="url(#waterGrad)" opacity=".88"/>
+        <rect id="waterFoam" x="0" y="220" width="300" height="3" fill="var(--water-foam)" opacity=".7"/>
+      </svg>
+      <span class="waterline-label" id="waterlineLabel">ระดับน้ำ 0%</span>
+    </div>
+
+    <div class="terminal">
+      <p class="terminal-eyebrow">ด่านที่ <span id="levelNum">1</span> / 10 — ปลดล็อกด้วยการบวกให้ถูกต้อง</p>
+      <p class="problem eqn" id="problemText">8 <span class="op">+</span> 3 <span class="op">=</span> ?</p>
+      <div class="answer-row">
+        <input class="answer-input" id="answerInput" type="number" inputmode="numeric" placeholder="คำตอบ" aria-label="กรอกคำตอบ">
+        <button class="btn btn-rescue" id="submitBtn" type="button">ยืนยัน</button>
+      </div>
+      <p class="feedback" id="feedback"></p>
+    </div>
+  </section>
+
+  <!-- WIN -->
+  <section class="card" id="screenWin" hidden>
+    <div class="icon">🎉</div>
+    <h1>ช่วยตัวประกันสำเร็จ!</h1>
+    <p>คุณไขครบทั้ง 10 ด่านก่อนน้ำท่วมถึง ภารกิจกู้ภัยลุล่วงด้วยดี</p>
+    <div class="stat-row">
+      <div class="stat"><div class="n eqn" id="winTime">00:00</div><div class="l">เวลาที่ใช้</div></div>
+    </div>
+    <button class="btn btn-rescue btn-block" id="restartBtnWin" type="button">เล่นใหม่</button>
+  </section>
+
+  <!-- LOSE -->
+  <section class="card" id="screenLose" hidden>
+    <div class="icon">⏱️</div>
+    <h1>หมดเวลา!</h1>
+    <p>น้ำท่วมถึงตัวประกันก่อนที่ภารกิจจะสำเร็จ — ไขได้ <span id="loseLevel">0</span> จาก 10 ด่าน ลองอีกครั้งไหม?</p>
+    <button class="btn btn-rescue btn-block" id="restartBtnLose" type="button">ลองใหม่อีกครั้ง</button>
+  </section>
+
+  <footer>ภารกิจฝึกบวกจำนวนเต็ม — 10 ด่าน ภายใน 10 นาที</footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyBxUTyhRGo8Sw5ugcxNjvSjfdGYi2F2LxY",
+  authDomain: "m4-interval-kahoot.firebaseapp.com",
+  databaseURL: "https://m4-interval-kahoot-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "m4-interval-kahoot",
+  storageBucket: "m4-interval-kahoot.firebasestorage.app",
+  messagingSenderId: "586829801581",
+  appId: "1:586829801581:web:5e4213466a303534cab764"
+};
+var db = null;
+try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e){ console.error("Firebase init failed", e); }
+</script>
+<script>
+(function(){
+  "use strict";
+
+  var LEVELS = [
+    { a: 8,   b: 3,   answer: 11 },
+    { a: -15, b: 7,   answer: -8 },
+    { a: -6,  b: 18,  answer: 12 },
+    { a: -7,  b: -2,  answer: -9 },
+    { a: -9,  b: 12,  answer: 3 },
+    { a: -15, b: 15,  answer: 0 },
+    { a: 5,   b: -20, answer: -15 },
+    { a: -75, b: -10, answer: -85 },
+    { a: -125,b: 25,  answer: -100 },
+    { a: null, b: null, answer: -10, custom: '[ (−12) + (−5) ] <span class="op">+</span> 7 <span class="op">=</span> ?' }
+  ];
+  var TOTAL_SECONDS = 10 * 60;
+
+  var screenBriefing = document.getElementById("screenBriefing");
+  var screenPlay = document.getElementById("screenPlay");
+  var screenWin = document.getElementById("screenWin");
+  var screenLose = document.getElementById("screenLose");
+  var timerChip = document.getElementById("timerChip");
+  var timerText = document.getElementById("timerText");
+  var brandDot = document.getElementById("brandDot");
+  var pipTrail = document.getElementById("pipTrail");
+  var levelNum = document.getElementById("levelNum");
+  var problemText = document.getElementById("problemText");
+  var answerInput = document.getElementById("answerInput");
+  var submitBtn = document.getElementById("submitBtn");
+  var feedback = document.getElementById("feedback");
+  var waterRect = document.getElementById("waterRect");
+  var waterFoam = document.getElementById("waterFoam");
+  var waterlineLabel = document.getElementById("waterlineLabel");
+  var winTime = document.getElementById("winTime");
+  var loseLevel = document.getElementById("loseLevel");
+  var inName = document.getElementById("inName");
+  var inClass = document.getElementById("inClass");
+  var inNumber = document.getElementById("inNumber");
+  var startWarning = document.getElementById("startWarning");
+  var screenTeacher = document.getElementById("screenTeacher");
+  var teacherSubtitle = document.getElementById("teacherSubtitle");
+  var teacherTableWrap = document.getElementById("teacherTableWrap");
+
+  var currentLevel = 0;
+  var secondsLeft = TOTAL_SECONDS;
+  var timerId = null;
+  var running = false;
+  var playerInfo = { name:"", classRoom:"", number:"" };
+
+  function fmtTime(s){
+    var m = Math.floor(s/60), sec = s%60;
+    return (m<10?"0":"")+m+":"+(sec<10?"0":"")+sec;
+  }
+
+  function buildPips(){
+    pipTrail.innerHTML = "";
+    for(var i=0;i<LEVELS.length;i++){
+      var p = document.createElement("div");
+      p.className = "pip";
+      p.id = "pip-"+i;
+      pipTrail.appendChild(p);
+    }
+  }
+  function updatePips(){
+    for(var i=0;i<LEVELS.length;i++){
+      var p = document.getElementById("pip-"+i);
+      p.className = "pip" + (i<currentLevel ? " done" : (i===currentLevel ? " current" : ""));
+    }
+  }
+
+  function renderLevel(){
+    var lvl = LEVELS[currentLevel];
+    levelNum.textContent = currentLevel + 1;
+    if(lvl.custom){
+      problemText.innerHTML = lvl.custom;
+    } else {
+      var bDisplay = lvl.b < 0 ? "(" + lvl.b + ")" : lvl.b;
+      var aDisplay = lvl.a < 0 ? "(" + lvl.a + ")" : lvl.a;
+      problemText.innerHTML = aDisplay + ' <span class="op">+</span> ' + bDisplay + ' <span class="op">=</span> ?';
+    }
+    answerInput.value = "";
+    feedback.textContent = "";
+    feedback.className = "feedback";
+    updatePips();
+    answerInput.focus();
+  }
+
+  function updateWater(){
+    var frac = 1 - (secondsLeft / TOTAL_SECONDS);
+    frac = Math.max(0, Math.min(1, frac));
+    var h = frac * 220;
+    waterRect.setAttribute("y", 220 - h);
+    waterRect.setAttribute("height", h);
+    waterFoam.setAttribute("y", 220 - h);
+    waterlineLabel.textContent = "ระดับน้ำ " + Math.round(frac*100) + "%";
+    timerChip.classList.toggle("danger", secondsLeft <= 60);
+  }
+
+  function tick(){
+    secondsLeft--;
+    timerText.textContent = fmtTime(Math.max(0,secondsLeft));
+    updateWater();
+    if(secondsLeft <= 0){
+      endGame(false);
+    }
+  }
+
+  function startGame(){
+    var name = inName.value.trim();
+    var classRoom = inClass.value.trim();
+    var number = inNumber.value.trim();
+    if(!name || !classRoom || !number){
+      startWarning.hidden = false;
+      return;
+    }
+    startWarning.hidden = true;
+    playerInfo = { name:name, classRoom:classRoom, number:number };
+
+    screenBriefing.hidden = true;
+    screenPlay.hidden = false;
+    currentLevel = 0;
+    secondsLeft = TOTAL_SECONDS;
+    running = true;
+    buildPips();
+    renderLevel();
+    updateWater();
+    timerText.textContent = fmtTime(secondsLeft);
+    timerId = setInterval(tick, 1000);
+  }
+
+  function submitAnswer(){
+    if(!running) return;
+    var raw = answerInput.value.trim();
+    if(raw === ""){
+      feedback.textContent = "กรอกคำตอบก่อนนะ";
+      feedback.className = "feedback bad";
+      return;
+    }
+    var val = parseInt(raw, 10);
+    var lvl = LEVELS[currentLevel];
+    if(val === lvl.answer){
+      feedback.textContent = "ถูกต้อง! ปลดล็อกด่านนี้แล้ว";
+      feedback.className = "feedback good";
+      currentLevel++;
+      updatePips();
+      if(currentLevel >= LEVELS.length){
+        setTimeout(function(){ endGame(true); }, 500);
+      } else {
+        setTimeout(renderLevel, 550);
+      }
+    } else {
+      feedback.textContent = "ยังไม่ถูก ลองคำนวณอีกครั้ง";
+      feedback.className = "feedback bad";
+      answerInput.classList.remove("shake");
+      void answerInput.offsetWidth;
+      answerInput.classList.add("shake");
+      answerInput.select();
+    }
+  }
+
+  function endGame(won){
+    running = false;
+    if(timerId){ clearInterval(timerId); timerId = null; }
+    brandDot.classList.remove("live");
+    screenPlay.hidden = true;
+    var timeUsedSeconds = TOTAL_SECONDS - secondsLeft;
+    if(won){
+      winTime.textContent = fmtTime(timeUsedSeconds);
+      screenWin.hidden = false;
+    } else {
+      loseLevel.textContent = currentLevel;
+      updateWater();
+      screenLose.hidden = false;
+    }
+    recordScore(won, timeUsedSeconds);
+  }
+
+  function recordScore(won, timeUsedSeconds){
+    if(!db) return;
+    db.ref("hostage_scores").push({
+      name: playerInfo.name,
+      classRoom: playerInfo.classRoom,
+      number: playerInfo.number,
+      won: won,
+      levelsCleared: won ? LEVELS.length : currentLevel,
+      timeUsedSeconds: timeUsedSeconds,
+      at: Date.now()
+    }).catch(function(e){ console.error("Failed to record score", e); });
+  }
+
+  function resetToBriefing(){
+    screenWin.hidden = true;
+    screenLose.hidden = true;
+    screenBriefing.hidden = false;
+    timerText.textContent = fmtTime(TOTAL_SECONDS);
+    timerChip.classList.remove("danger");
+    brandDot.classList.add("live");
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function showTeacherView(){
+    screenBriefing.hidden = true;
+    screenTeacher.hidden = false;
+    teacherSubtitle.textContent = "กำลังโหลดข้อมูล...";
+    teacherTableWrap.innerHTML = "";
+    if(!db){
+      teacherSubtitle.textContent = "ไม่สามารถเชื่อมต่อฐานข้อมูลได้";
+      return;
+    }
+    db.ref("hostage_scores").orderByChild("at").once("value").then(function(snap){
+      var rows = [];
+      snap.forEach(function(child){ rows.push(child.val()); });
+      rows.reverse();
+      if(rows.length === 0){
+        teacherSubtitle.textContent = "ยังไม่มีนักเรียนเล่น";
+        teacherTableWrap.innerHTML = '<p class="teacher-empty">ยังไม่มีข้อมูล</p>';
+        return;
+      }
+      teacherSubtitle.textContent = "ทั้งหมด " + rows.length + " ครั้ง เรียงจากล่าสุด";
+      var html = '<table class="teacher-table"><thead><tr>' +
+        '<th>เวลาที่เล่น</th><th>ชื่อ</th><th>ชั้น</th><th>เลขที่</th><th>ผลลัพธ์</th><th>ด่านที่ทำได้</th><th>เวลาที่ใช้</th>' +
+        '</tr></thead><tbody>';
+      rows.forEach(function(r){
+        var dt = new Date(r.at || 0);
+        var dtStr = dt.toLocaleString("th-TH", { dateStyle:"short", timeStyle:"short" });
+        var m = Math.floor((r.timeUsedSeconds||0)/60), s = (r.timeUsedSeconds||0)%60;
+        var timeStr = (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+        html += '<tr>' +
+          '<td>'+escapeHtml(dtStr)+'</td>' +
+          '<td>'+escapeHtml(r.name||"")+'</td>' +
+          '<td>'+escapeHtml(r.classRoom||"")+'</td>' +
+          '<td>'+escapeHtml(r.number||"")+'</td>' +
+          '<td class="'+(r.won?"win":"lose")+'">'+(r.won?"สำเร็จ":"ไม่สำเร็จ")+'</td>' +
+          '<td>'+(r.levelsCleared!=null?r.levelsCleared:"-")+' / 10</td>' +
+          '<td>'+(r.won?timeStr:"-")+'</td>' +
+          '</tr>';
+      });
+      html += '</tbody></table>';
+      teacherTableWrap.innerHTML = html;
+    }).catch(function(e){
+      console.error("Failed to load scores", e);
+      teacherSubtitle.textContent = "โหลดข้อมูลไม่สำเร็จ";
+    });
+  }
+
+  document.getElementById("startBtn").addEventListener("click", startGame);
+  document.getElementById("restartBtnWin").addEventListener("click", resetToBriefing);
+  document.getElementById("restartBtnLose").addEventListener("click", resetToBriefing);
+  document.getElementById("teacherViewBtn").addEventListener("click", showTeacherView);
+  document.getElementById("teacherBackBtn").addEventListener("click", function(){
+    screenTeacher.hidden = true;
+    screenBriefing.hidden = false;
+  });
+  submitBtn.addEventListener("click", submitAnswer);
+  answerInput.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); submitAnswer(); }
+  });
+
+  brandDot.classList.add("live");
+})();
+</script>
+</body>
+</html>
