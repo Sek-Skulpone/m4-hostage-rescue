@@ -42,7 +42,46 @@
   .timer-chip{ display:flex; align-items:center; gap:8px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:7px 14px; }
   .timer-chip .hud-num{ font-size:1.35rem; font-weight:700; color:var(--rescue); letter-spacing:.02em; }
   .timer-chip.danger .hud-num{ color:var(--alarm); }
+  .timer-chip.danger{ border-color:var(--alarm); }
+  @media (prefers-reduced-motion:no-preference){
+    .timer-chip.danger{ animation: heartbeat .5s ease-in-out infinite; }
+  }
+  @keyframes heartbeat{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,90,60,.5); } 50%{ box-shadow:0 0 0 6px rgba(255,90,60,0); } }
   .timer-label{ font-size:.68rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em; }
+
+  .mute-btn{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:10px; width:38px; height:38px;
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem; cursor:pointer; color:var(--ink-dim); flex-shrink:0;
+  }
+  .mute-btn:hover{ color:var(--ink); border-color:var(--ink-dim); }
+
+  .status-right{ display:flex; align-items:center; gap:8px; }
+
+  @media (prefers-reduced-motion:no-preference){
+    .stage.shake-screen{ animation: screen-shake .4s ease; }
+  }
+  @keyframes screen-shake{
+    0%,100%{ transform:translateX(0) rotate(0); }
+    20%{ transform:translateX(-7px) rotate(-0.5deg); }
+    40%{ transform:translateX(6px) rotate(0.4deg); }
+    60%{ transform:translateX(-5px) rotate(-0.3deg); }
+    80%{ transform:translateX(4px) rotate(0.2deg); }
+  }
+
+  .alarm-overlay{ position:absolute; inset:0; pointer-events:none; opacity:0; background:radial-gradient(ellipse at center, transparent 35%, var(--alarm) 160%); }
+  @media (prefers-reduced-motion:no-preference){
+    .alarm-overlay.active{ animation: alarm-pulse .9s ease-in-out infinite; }
+  }
+  @keyframes alarm-pulse{ 0%,100%{ opacity:0; } 50%{ opacity:.4; } }
+
+  .splash-ring{ position:absolute; left:50%; border:2px solid var(--water-foam); border-radius:50%; pointer-events:none; opacity:0; }
+  @media (prefers-reduced-motion:no-preference){
+    .splash-ring.animate{ animation: splash-out 1.1s ease-out forwards; }
+  }
+  @keyframes splash-out{
+    0%{ width:6px; height:6px; margin-left:-3px; opacity:.8; }
+    100%{ width:90px; height:26px; margin-left:-45px; opacity:0; }
+  }
 
   /* ---- level pip trail ---- */
   .pip-trail{ display:flex; gap:6px; justify-content:center; }
@@ -58,34 +97,34 @@
   .wave{ transform-box: fill-box; }
   .bubble{ transform-box: fill-box; transform-origin: 50% 50%; opacity:0; }
   @media (prefers-reduced-motion:no-preference){
-    .wiggle-body{ transform-box: fill-box; transform-origin: 50% 68%; animation: struggle 2.3s ease-in-out infinite; }
-    .wiggle-head{ transform-box: fill-box; transform-origin: 50% 60%; animation: head-shake 2.3s ease-in-out infinite; }
-    .wiggle-leg-l{ transform-box: fill-box; transform-origin: 50% 0%; animation: kick-l 2.3s ease-in-out infinite; }
-    .wiggle-leg-r{ transform-box: fill-box; transform-origin: 50% 0%; animation: kick-r 2.3s ease-in-out infinite; }
-    #hostageGroup.danger .wiggle-body{ animation: struggle-fast .65s ease-in-out infinite; }
-    #hostageGroup.danger .wiggle-head{ animation: head-shake-fast .65s ease-in-out infinite; }
-    #hostageGroup.danger .wiggle-leg-l{ animation: kick-l-fast .5s ease-in-out infinite; }
-    #hostageGroup.danger .wiggle-leg-r{ animation: kick-r-fast .5s ease-in-out infinite; }
+    .wiggle-body{ transform-box: fill-box; transform-origin: 50% 68%; animation: struggle 1.4s ease-in-out infinite; }
+    .wiggle-head{ transform-box: fill-box; transform-origin: 50% 60%; animation: head-shake 1.4s ease-in-out infinite; }
+    .wiggle-leg-l{ transform-box: fill-box; transform-origin: 50% 0%; animation: kick-l 1.4s ease-in-out infinite; }
+    .wiggle-leg-r{ transform-box: fill-box; transform-origin: 50% 0%; animation: kick-r 1.4s ease-in-out infinite; }
+    #hostageGroup.danger .wiggle-body{ animation: struggle-fast .4s ease-in-out infinite; }
+    #hostageGroup.danger .wiggle-head{ animation: head-shake-fast .4s ease-in-out infinite; }
+    #hostageGroup.danger .wiggle-leg-l{ animation: kick-l-fast .32s ease-in-out infinite; }
+    #hostageGroup.danger .wiggle-leg-r{ animation: kick-r-fast .32s ease-in-out infinite; }
 
     @keyframes struggle{
       0%,100%{ transform: rotate(0deg) translateX(0); }
-      20%{ transform: rotate(-5deg) translateX(-1.2px); }
-      45%{ transform: rotate(3deg) translateX(1px); }
-      70%{ transform: rotate(-2deg) translateX(-0.6px); }
-      85%{ transform: rotate(2deg) translateX(0.5px); }
+      20%{ transform: rotate(-10deg) translateX(-3px); }
+      45%{ transform: rotate(7deg) translateX(2.5px); }
+      70%{ transform: rotate(-5deg) translateX(-1.5px); }
+      85%{ transform: rotate(4deg) translateX(1px); }
     }
     @keyframes struggle-fast{
       0%,100%{ transform: rotate(0deg) translateX(0) translateY(0); }
-      25%{ transform: rotate(-8deg) translateX(-2.2px) translateY(1px); }
-      50%{ transform: rotate(6deg) translateX(2px) translateY(-1px); }
-      75%{ transform: rotate(-6deg) translateX(-1.4px) translateY(1px); }
+      25%{ transform: rotate(-15deg) translateX(-4.5px) translateY(2px); }
+      50%{ transform: rotate(12deg) translateX(4px) translateY(-2px); }
+      75%{ transform: rotate(-11deg) translateX(-3px) translateY(2px); }
     }
-    @keyframes head-shake{ 0%,50%,100%{ transform:rotate(0deg); } 25%{ transform:rotate(5deg); } 75%{ transform:rotate(-5deg); } }
-    @keyframes head-shake-fast{ 0%,100%{ transform:rotate(0deg); } 30%{ transform:rotate(9deg); } 60%{ transform:rotate(-9deg); } }
-    @keyframes kick-l{ 0%,60%,100%{ transform:rotate(0deg); } 30%{ transform:rotate(14deg); } }
-    @keyframes kick-r{ 0%,30%,100%{ transform:rotate(0deg); } 60%{ transform:rotate(-14deg); } }
-    @keyframes kick-l-fast{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(20deg); } }
-    @keyframes kick-r-fast{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-20deg); } }
+    @keyframes head-shake{ 0%,50%,100%{ transform:rotate(0deg); } 25%{ transform:rotate(9deg); } 75%{ transform:rotate(-9deg); } }
+    @keyframes head-shake-fast{ 0%,100%{ transform:rotate(0deg); } 30%{ transform:rotate(15deg); } 60%{ transform:rotate(-15deg); } }
+    @keyframes kick-l{ 0%,60%,100%{ transform:rotate(0deg); } 30%{ transform:rotate(24deg); } }
+    @keyframes kick-r{ 0%,30%,100%{ transform:rotate(0deg); } 60%{ transform:rotate(-24deg); } }
+    @keyframes kick-l-fast{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(32deg); } }
+    @keyframes kick-r-fast{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-32deg); } }
 
     .wave-1{ animation: wave-drift-1 3.4s linear infinite; }
     .wave-2{ animation: wave-drift-2 4.6s linear infinite; }
@@ -184,9 +223,12 @@
       <span class="brand-dot" id="brandDot"></span>
       <span class="brand-text">ภารกิจกู้ภัย</span>
     </div>
-    <div class="timer-chip" id="timerChip">
-      <span class="timer-label">เวลาคงเหลือ</span>
-      <span class="hud-num eqn" id="timerText">10:00</span>
+    <div class="status-right">
+      <div class="timer-chip" id="timerChip">
+        <span class="timer-label">เวลาคงเหลือ</span>
+        <span class="hud-num eqn" id="timerText">10:00</span>
+      </div>
+      <button class="mute-btn" id="muteBtn" type="button" aria-label="ปิด/เปิดเสียง">🔊</button>
     </div>
   </div>
 
@@ -266,6 +308,8 @@
         </g>
       </svg>
       <span class="waterline-label" id="waterlineLabel">ระดับน้ำ 0%</span>
+      <div class="alarm-overlay" id="alarmOverlay"></div>
+      <div id="splashLayer" style="position:absolute; inset:0; pointer-events:none; overflow:hidden;"></div>
     </div>
 
     <div class="terminal">
@@ -334,6 +378,89 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   ];
   var TOTAL_SECONDS = 10 * 60;
 
+  /* ---- sound engine (synthesized, no audio files) ---- */
+  var audioCtx = null;
+  var muted = false;
+  var sirenOsc = null, sirenLFO = null, sirenGain = null;
+  var wasDanger = false;
+
+  function getAudioCtx(){
+    if(!audioCtx){
+      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ audioCtx = null; }
+    }
+    if(audioCtx && audioCtx.state === "suspended"){ audioCtx.resume(); }
+    return audioCtx;
+  }
+  function playTone(freq, duration, type, volume){
+    if(muted) return;
+    var ctx = getAudioCtx();
+    if(!ctx) return;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    gain.gain.value = volume || 0.15;
+    osc.connect(gain); gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  }
+  function playCorrectSound(){
+    playTone(880, 0.12, "sine", 0.18);
+    setTimeout(function(){ playTone(1320, 0.16, "sine", 0.15); }, 90);
+  }
+  function playWrongSound(){ playTone(160, 0.28, "sawtooth", 0.16); }
+  function playTick(urgent){ playTone(urgent ? 1400 : 1000, 0.05, "square", urgent ? 0.09 : 0.05); }
+  function playWinFanfare(){
+    [523, 659, 784, 1047].forEach(function(f, i){
+      setTimeout(function(){ playTone(f, 0.32, "triangle", 0.18); }, i * 130);
+    });
+  }
+  function playLoseSound(){
+    playTone(200, 0.6, "sawtooth", 0.2);
+    setTimeout(function(){ playTone(110, 0.9, "sawtooth", 0.18); }, 220);
+  }
+  function startSiren(){
+    if(sirenOsc || muted) return;
+    var ctx = getAudioCtx();
+    if(!ctx) return;
+    sirenOsc = ctx.createOscillator();
+    sirenGain = ctx.createGain();
+    sirenLFO = ctx.createOscillator();
+    var lfoGain = ctx.createGain();
+    sirenOsc.type = "sine";
+    sirenOsc.frequency.value = 560;
+    sirenLFO.type = "sine";
+    sirenLFO.frequency.value = 1.1;
+    lfoGain.gain.value = 200;
+    sirenLFO.connect(lfoGain);
+    lfoGain.connect(sirenOsc.frequency);
+    sirenGain.gain.value = 0.05;
+    sirenOsc.connect(sirenGain);
+    sirenGain.connect(ctx.destination);
+    sirenOsc.start(); sirenLFO.start();
+  }
+  function stopSiren(){
+    if(sirenOsc){
+      try{ sirenOsc.stop(); sirenLFO.stop(); }catch(e){}
+      sirenOsc = null; sirenLFO = null; sirenGain = null;
+    }
+  }
+  function updateMuteBtn(){
+    if(muteBtn) muteBtn.textContent = muted ? "🔇" : "🔊";
+  }
+  function spawnSplash(){
+    if(!splashLayer) return;
+    var ring = document.createElement("div");
+    ring.className = "splash-ring";
+    ring.style.bottom = (Math.random()*4) + "px";
+    ring.style.left = (20 + Math.random()*60) + "%";
+    splashLayer.appendChild(ring);
+    requestAnimationFrame(function(){ ring.classList.add("animate"); });
+    setTimeout(function(){ ring.remove(); }, 1200);
+  }
+
   var screenBriefing = document.getElementById("screenBriefing");
   var screenPlay = document.getElementById("screenPlay");
   var screenWin = document.getElementById("screenWin");
@@ -361,6 +488,10 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   var screenTeacher = document.getElementById("screenTeacher");
   var teacherSubtitle = document.getElementById("teacherSubtitle");
   var teacherTableWrap = document.getElementById("teacherTableWrap");
+  var muteBtn = document.getElementById("muteBtn");
+  var alarmOverlay = document.getElementById("alarmOverlay");
+  var splashLayer = document.getElementById("splashLayer");
+  var stageEl = document.querySelector(".stage");
 
   var currentLevel = 0;
   var secondsLeft = TOTAL_SECONDS;
@@ -416,15 +547,21 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     waterClipRect.setAttribute("y", 220 - h);
     waterClipRect.setAttribute("height", h);
     waterlineLabel.textContent = "ระดับน้ำ " + Math.round(frac*100) + "%";
-    var danger = secondsLeft <= 60;
+    var danger = secondsLeft <= 60 && secondsLeft > 0;
     timerChip.classList.toggle("danger", danger);
     hostageGroup.classList.toggle("danger", danger);
+    if(alarmOverlay) alarmOverlay.classList.toggle("active", danger);
+    if(danger && !wasDanger){ startSiren(); }
+    if(!danger && wasDanger){ stopSiren(); }
+    wasDanger = danger;
   }
 
   function tick(){
     secondsLeft--;
     timerText.textContent = fmtTime(Math.max(0,secondsLeft));
     updateWater();
+    if(secondsLeft > 0 && secondsLeft <= 10){ playTick(secondsLeft <= 5); }
+    if(running && secondsLeft % 4 === 0 && secondsLeft > 0){ spawnSplash(); }
     if(secondsLeft <= 0){
       endGame(false);
     }
@@ -440,12 +577,14 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     }
     startWarning.hidden = true;
     playerInfo = { name:name, classRoom:classRoom, number:number };
+    getAudioCtx();
 
     screenBriefing.hidden = true;
     screenPlay.hidden = false;
     currentLevel = 0;
     secondsLeft = TOTAL_SECONDS;
     running = true;
+    wasDanger = false;
     buildPips();
     renderLevel();
     updateWater();
@@ -466,6 +605,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     if(val === lvl.answer){
       feedback.textContent = "ถูกต้อง! ปลดล็อกด่านนี้แล้ว";
       feedback.className = "feedback good";
+      playCorrectSound();
       currentLevel++;
       updatePips();
       if(currentLevel >= LEVELS.length){
@@ -476,10 +616,16 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     } else {
       feedback.textContent = "ยังไม่ถูก ลองคำนวณอีกครั้ง";
       feedback.className = "feedback bad";
+      playWrongSound();
       answerInput.classList.remove("shake");
       void answerInput.offsetWidth;
       answerInput.classList.add("shake");
       answerInput.select();
+      if(stageEl){
+        stageEl.classList.remove("shake-screen");
+        void stageEl.offsetWidth;
+        stageEl.classList.add("shake-screen");
+      }
     }
   }
 
@@ -487,15 +633,20 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     running = false;
     if(timerId){ clearInterval(timerId); timerId = null; }
     brandDot.classList.remove("live");
+    stopSiren();
+    wasDanger = false;
+    if(alarmOverlay) alarmOverlay.classList.remove("active");
     screenPlay.hidden = true;
     var timeUsedSeconds = TOTAL_SECONDS - secondsLeft;
     if(won){
       winTime.textContent = fmtTime(timeUsedSeconds);
       screenWin.hidden = false;
+      playWinFanfare();
     } else {
       loseLevel.textContent = currentLevel;
       updateWater();
       screenLose.hidden = false;
+      playLoseSound();
     }
     recordScore(won, timeUsedSeconds);
   }
@@ -572,6 +723,12 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   }
 
   document.getElementById("startBtn").addEventListener("click", startGame);
+  if(muteBtn) muteBtn.addEventListener("click", function(){
+    muted = !muted;
+    updateMuteBtn();
+    if(muted) stopSiren();
+    else if(wasDanger) startSiren();
+  });
   document.getElementById("restartBtnWin").addEventListener("click", resetToBriefing);
   document.getElementById("restartBtnLose").addEventListener("click", resetToBriefing);
   document.getElementById("teacherViewBtn").addEventListener("click", showTeacherView);
