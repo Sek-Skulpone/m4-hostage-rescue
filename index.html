@@ -221,6 +221,11 @@
   table.teacher-table td{ color:var(--ink); }
   table.teacher-table .win{ color:var(--good); font-weight:600; }
   table.teacher-table .lose{ color:var(--alarm); font-weight:600; }
+  .delete-score-btn{
+    background:var(--alarm-soft); color:var(--alarm); border:1px solid var(--alarm); border-radius:8px;
+    padding:5px 10px; font-family:'Sarabun',sans-serif; font-size:.78rem; font-weight:600; cursor:pointer;
+  }
+  .delete-score-btn:hover{ background:var(--alarm); color:#fff; }
   .teacher-empty{ color:var(--ink-faint); padding:20px; text-align:center; }
 </style>
 </head>
@@ -804,7 +809,11 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     }
     db.ref("hostage_scores").orderByChild("at").once("value").then(function(snap){
       var rows = [];
-      snap.forEach(function(child){ rows.push(child.val()); });
+      snap.forEach(function(child){
+        var v = child.val();
+        v._key = child.key;
+        rows.push(v);
+      });
       rows.reverse();
       if(rows.length === 0){
         teacherSubtitle.textContent = "ยังไม่มีนักเรียนเล่น";
@@ -819,7 +828,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
         summaryTableHtml("สรุปแยกตามห้อง", summary.rooms, summary.totalStudents);
 
       var html = '<table class="teacher-table"><thead><tr>' +
-        '<th>เวลาที่เล่น</th><th>ชื่อ</th><th>ชั้น</th><th>เลขที่</th><th>ผลลัพธ์</th><th>ด่านที่ทำได้</th><th>ผ่านเกณฑ์ 70%</th><th>เวลาที่ใช้</th>' +
+        '<th>เวลาที่เล่น</th><th>ชื่อ</th><th>ชั้น</th><th>เลขที่</th><th>ผลลัพธ์</th><th>ด่านที่ทำได้</th><th>ผ่านเกณฑ์ 70%</th><th>เวลาที่ใช้</th><th></th>' +
         '</tr></thead><tbody>';
       rows.forEach(function(r){
         var dt = new Date(r.at || 0);
@@ -837,10 +846,23 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
           '<td>'+(r.levelsCleared!=null?r.levelsCleared:"-")+' / '+LEVELS.length+'</td>' +
           '<td class="'+(passed?"win":"lose")+'">'+(passed?"ผ่าน ✓":"ไม่ผ่าน")+'</td>' +
           '<td>'+(r.won?timeStr:"-")+'</td>' +
+          '<td><button type="button" class="delete-score-btn" data-key="'+escapeHtml(r._key)+'">ลบ</button></td>' +
           '</tr>';
       });
       html += '</tbody></table>';
       teacherTableWrap.innerHTML = html;
+      teacherTableWrap.querySelectorAll(".delete-score-btn").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var key = btn.dataset.key;
+          if(!confirm("ลบรายการนี้ใช่ไหม? กู้คืนไม่ได้")) return;
+          db.ref("hostage_scores/" + key).remove().then(function(){
+            showTeacherView();
+          }).catch(function(e){
+            console.error("Failed to delete score", e);
+            alert("ลบไม่สำเร็จ ลองใหม่อีกครั้ง");
+          });
+        });
+      });
     }).catch(function(e){
       console.error("Failed to load scores", e);
       teacherSubtitle.textContent = "โหลดข้อมูลไม่สำเร็จ";
