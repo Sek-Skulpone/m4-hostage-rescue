@@ -717,20 +717,23 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
       }
       teacherSubtitle.textContent = "ทั้งหมด " + rows.length + " ครั้ง เรียงจากล่าสุด";
       var html = '<table class="teacher-table"><thead><tr>' +
-        '<th>เวลาที่เล่น</th><th>ชื่อ</th><th>ชั้น</th><th>เลขที่</th><th>ผลลัพธ์</th><th>ด่านที่ทำได้</th><th>เวลาที่ใช้</th>' +
+        '<th>เวลาที่เล่น</th><th>ชื่อ</th><th>ชั้น</th><th>เลขที่</th><th>ผลลัพธ์</th><th>ด่านที่ทำได้</th><th>ผ่านเกณฑ์ 70%</th><th>เวลาที่ใช้</th>' +
         '</tr></thead><tbody>';
       rows.forEach(function(r){
         var dt = new Date(r.at || 0);
         var dtStr = dt.toLocaleString("th-TH", { dateStyle:"short", timeStyle:"short" });
         var m = Math.floor((r.timeUsedSeconds||0)/60), s = (r.timeUsedSeconds||0)%60;
         var timeStr = (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+        var cleared = r.levelsCleared!=null ? r.levelsCleared : 0;
+        var passed = (cleared / LEVELS.length) >= 0.7;
         html += '<tr>' +
           '<td>'+escapeHtml(dtStr)+'</td>' +
           '<td>'+escapeHtml(r.name||"")+'</td>' +
           '<td>'+escapeHtml(r.classRoom||"")+'</td>' +
           '<td>'+escapeHtml(r.number||"")+'</td>' +
           '<td class="'+(r.won?"win":"lose")+'">'+(r.won?"สำเร็จ":"ไม่สำเร็จ")+'</td>' +
-          '<td>'+(r.levelsCleared!=null?r.levelsCleared:"-")+' / 10</td>' +
+          '<td>'+(r.levelsCleared!=null?r.levelsCleared:"-")+' / '+LEVELS.length+'</td>' +
+          '<td class="'+(passed?"win":"lose")+'">'+(passed?"ผ่าน ✓":"ไม่ผ่าน")+'</td>' +
           '<td>'+(r.won?timeStr:"-")+'</td>' +
           '</tr>';
       });
