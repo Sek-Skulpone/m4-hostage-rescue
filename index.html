@@ -278,6 +278,7 @@
   <section class="card" id="screenTeacher" hidden>
     <h1>คะแนนย้อนหลัง</h1>
     <p id="teacherSubtitle">กำลังโหลดข้อมูล...</p>
+    <div id="teacherSummaryWrap"></div>
     <div class="teacher-table-wrap" id="teacherTableWrap"></div>
     <button class="btn btn-ghost btn-block" id="teacherBackBtn" type="button">กลับหน้าแรก</button>
   </section>
@@ -507,6 +508,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   var startWarning = document.getElementById("startWarning");
   var screenTeacher = document.getElementById("screenTeacher");
   var teacherSubtitle = document.getElementById("teacherSubtitle");
+  var teacherSummaryWrap = document.getElementById("teacherSummaryWrap");
   var teacherTableWrap = document.getElementById("teacherTableWrap");
   var muteBtn = document.getElementById("muteBtn");
   var alarmOverlay = document.getElementById("alarmOverlay");
@@ -697,10 +699,74 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
+  function parseGrade(classRoom){
+    var m = /ม\.?\s*(\d+)/.exec(String(classRoom||""));
+    return m ? ("ม." + m[1]) : "(ไม่ระบุชั้น)";
+  }
+
+  function summarizeScores(rows){
+    var byStudent = {};
+    rows.forEach(function(r){
+      var cr = String(r.classRoom||"").trim();
+      var num = String(r.number||"").trim();
+      var name = String(r.name||"").trim();
+      var key = cr + "|" + num + "|" + name;
+      var cleared = r.levelsCleared!=null ? r.levelsCleared : 0;
+      if(!byStudent[key]){
+        byStudent[key] = { name:name, classRoom:cr, number:num, bestCleared:cleared, everWon: !!r.won, attempts:1 };
+      } else {
+        var s = byStudent[key];
+        s.attempts++;
+        if(cleared > s.bestCleared) s.bestCleared = cleared;
+        if(r.won) s.everWon = true;
+      }
+    });
+    var students = Object.keys(byStudent).map(function(k){ return byStudent[k]; });
+    students.forEach(function(s){ s.passed = s.everWon || (s.bestCleared / LEVELS.length) >= 0.7; });
+
+    var byRoom = {}, byGrade = {};
+    students.forEach(function(s){
+      var roomLabel = s.classRoom || "(ไม่ระบุห้อง)";
+      if(!byRoom[roomLabel]) byRoom[roomLabel] = { label:roomLabel, total:0, passed:0 };
+      byRoom[roomLabel].total++;
+      if(s.passed) byRoom[roomLabel].passed++;
+
+      var gradeLabel = parseGrade(s.classRoom);
+      if(!byGrade[gradeLabel]) byGrade[gradeLabel] = { label:gradeLabel, total:0, passed:0 };
+      byGrade[gradeLabel].total++;
+      if(s.passed) byGrade[gradeLabel].passed++;
+    });
+
+    function toSorted(obj){
+      return Object.keys(obj).map(function(k){ return obj[k]; }).sort(function(a,b){ return a.label.localeCompare(b.label, "th"); });
+    }
+    return { totalStudents: students.length, rooms: toSorted(byRoom), grades: toSorted(byGrade) };
+  }
+
+  function summaryTableHtml(title, groups, totalStudents){
+    var html = '<h3 style="margin:16px 0 8px;">' + escapeHtml(title) + '</h3>';
+    html += '<div class="teacher-table-wrap"><table class="teacher-table"><thead><tr>' +
+      '<th>กลุ่ม</th><th>จำนวนนักเรียน</th><th>ผ่านเกณฑ์ 70%</th><th>ร้อยละที่ผ่าน</th>' +
+      '</tr></thead><tbody>';
+    groups.forEach(function(g){
+      var pct = g.total > 0 ? Math.round((g.passed / g.total) * 100) : 0;
+      html += '<tr>' +
+        '<td>'+escapeHtml(g.label)+'</td>' +
+        '<td>'+g.total+' คน</td>' +
+        '<td class="'+(g.passed===g.total?"win":(g.passed===0?"lose":""))+'">'+g.passed+' คน</td>' +
+        '<td>'+pct+'%</td>' +
+        '</tr>';
+    });
+    html += '<tr><td><strong>รวมทั้งหมด</strong></td><td colspan="3">'+totalStudents+' คน (นับคนละ 1 ครั้งจากผลดีที่สุด)</td></tr>';
+    html += '</tbody></table></div>';
+    return html;
+  }
+
   function showTeacherView(){
     screenBriefing.hidden = true;
     screenTeacher.hidden = false;
     teacherSubtitle.textContent = "กำลังโหลดข้อมูล...";
+    teacherSummaryWrap.innerHTML = "";
     teacherTableWrap.innerHTML = "";
     if(!db){
       teacherSubtitle.textContent = "ไม่สามารถเชื่อมต่อฐานข้อมูลได้";
@@ -716,6 +782,12 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
         return;
       }
       teacherSubtitle.textContent = "ทั้งหมด " + rows.length + " ครั้ง เรียงจากล่าสุด";
+
+      var summary = summarizeScores(rows);
+      teacherSummaryWrap.innerHTML =
+        summaryTableHtml("สรุปแยกตามชั้น", summary.grades, summary.totalStudents) +
+        summaryTableHtml("สรุปแยกตามห้อง", summary.rooms, summary.totalStudents);
+
       var html = '<table class="teacher-table"><thead><tr>' +
         '<th>เวลาที่เล่น</th><th>ชื่อ</th><th>ชั้น</th><th>เลขที่</th><th>ผลลัพธ์</th><th>ด่านที่ทำได้</th><th>ผ่านเกณฑ์ 70%</th><th>เวลาที่ใช้</th>' +
         '</tr></thead><tbody>';
