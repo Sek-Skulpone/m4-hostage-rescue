@@ -192,11 +192,12 @@
 
   .field{ text-align:left; margin-bottom:12px; }
   .field label{ display:block; font-size:.8rem; color:var(--ink-dim); margin-bottom:5px; font-weight:500; }
-  .field input{
+  .field input, .field select{
     width:100%; background:var(--panel); border:1.5px solid var(--line-strong); border-radius:10px;
     padding:12px 13px; font-family:'Sarabun',sans-serif; font-size:1.02rem; color:var(--ink);
   }
-  .field input:focus{ outline:none; border-color:var(--rescue); box-shadow:0 0 0 3px rgba(255,197,61,.18); }
+  .field select{ appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2396BFCC'%3E%3Cpath d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%2396BFCC' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px; }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--rescue); box-shadow:0 0 0 3px rgba(255,197,61,.18); }
   .field-row{ display:flex; gap:10px; }
   .field-row .field{ flex:1; }
 
@@ -261,8 +262,32 @@
     </div>
     <div class="field-row">
       <div class="field">
-        <label for="inClass">ชั้น</label>
-        <input type="text" id="inClass" placeholder="เช่น ม.4/1">
+        <label for="inGrade">ชั้น</label>
+        <select id="inGrade">
+          <option value="ม.1">ม.1</option>
+          <option value="ม.2">ม.2</option>
+          <option value="ม.3">ม.3</option>
+          <option value="ม.4" selected>ม.4</option>
+          <option value="ม.5">ม.5</option>
+          <option value="ม.6">ม.6</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="inRoom">ห้อง</label>
+        <select id="inRoom">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
       </div>
       <div class="field">
         <label for="inNumber">เลขที่</label>
@@ -270,7 +295,7 @@
       </div>
     </div>
     <button class="btn btn-rescue btn-block" id="startBtn" type="button">เริ่มภารกิจ</button>
-    <p id="startWarning" class="feedback bad" hidden>กรอกชื่อ ชั้น และเลขที่ก่อนเริ่มภารกิจ</p>
+    <p id="startWarning" class="feedback bad" hidden>กรอกชื่อและเลขที่ก่อนเริ่มภารกิจ</p>
     <button class="link-btn" id="teacherViewBtn" type="button">ครูดูคะแนนย้อนหลัง</button>
   </section>
 
@@ -503,7 +528,8 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   var winTime = document.getElementById("winTime");
   var loseLevel = document.getElementById("loseLevel");
   var inName = document.getElementById("inName");
-  var inClass = document.getElementById("inClass");
+  var inGrade = document.getElementById("inGrade");
+  var inRoom = document.getElementById("inRoom");
   var inNumber = document.getElementById("inNumber");
   var startWarning = document.getElementById("startWarning");
   var screenTeacher = document.getElementById("screenTeacher");
@@ -591,14 +617,16 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
 
   function startGame(){
     var name = inName.value.trim();
-    var classRoom = inClass.value.trim();
+    var grade = inGrade.value;
+    var room = inRoom.value;
     var number = inNumber.value.trim();
-    if(!name || !classRoom || !number){
+    if(!name || !number){
       startWarning.hidden = false;
       return;
     }
     startWarning.hidden = true;
-    playerInfo = { name:name, classRoom:classRoom, number:number };
+    var classRoom = grade + "/" + room;
+    playerInfo = { name:name, classRoom:classRoom, grade:grade, room:room, number:number };
     getAudioCtx();
 
     screenBriefing.hidden = true;
@@ -678,6 +706,8 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     db.ref("hostage_scores").push({
       name: playerInfo.name,
       classRoom: playerInfo.classRoom,
+      grade: playerInfo.grade,
+      room: playerInfo.room,
       number: playerInfo.number,
       won: won,
       levelsCleared: won ? LEVELS.length : currentLevel,
