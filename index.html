@@ -199,6 +199,14 @@
   .field input:focus{ outline:none; border-color:var(--rescue); box-shadow:0 0 0 3px rgba(255,197,61,.18); }
   .field-row{ display:flex; gap:10px; }
   .field-row .field{ flex:1; }
+
+  .time-picker{ display:flex; gap:8px; }
+  .time-chip{
+    flex:1; background:var(--panel); border:1.5px solid var(--line-strong); border-radius:10px;
+    padding:11px 0; font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:1.05rem; color:var(--ink-dim); cursor:pointer;
+  }
+  .time-chip:hover:not(.selected){ border-color:var(--ink-dim); color:var(--ink); }
+  .time-chip.selected{ background:var(--rescue); border-color:var(--rescue); color:#241804; }
   .link-btn{
     background:none; border:none; color:var(--water-foam); font-family:'Sarabun',sans-serif; font-size:.85rem;
     text-decoration:underline; cursor:pointer; padding:6px; margin-top:4px;
@@ -236,7 +244,17 @@
   <section class="card" id="screenBriefing">
     <div class="icon">🌊</div>
     <h1>ภารกิจช่วยตัวประกัน</h1>
-    <p>ตัวประกันถูกมัดไว้ในห้องใต้ดินที่น้ำกำลังท่วมสูงขึ้นเรื่อยๆ คุณมีเวลา <strong>10 นาที</strong> ในการไข <strong>10 ด่าน</strong> โจทย์บวกจำนวนเต็ม — ตอบถูกครบทุกด่านก่อนน้ำท่วมถึง เพื่อช่วยตัวประกันออกมาให้ทัน!</p>
+    <p>ตัวประกันถูกมัดไว้ในห้องใต้ดินที่น้ำกำลังท่วมสูงขึ้นเรื่อยๆ คุณมีเวลา <strong id="briefMinutesText">10 นาที</strong> ในการไข <strong>10 ด่าน</strong> โจทย์บวกจำนวนเต็ม — ตอบถูกครบทุกด่านก่อนน้ำท่วมถึง เพื่อช่วยตัวประกันออกมาให้ทัน!</p>
+    <div class="field">
+      <label>เวลาที่ให้ (นาที)</label>
+      <div class="time-picker" id="timePicker">
+        <button type="button" class="time-chip" data-min="3">3</button>
+        <button type="button" class="time-chip" data-min="5">5</button>
+        <button type="button" class="time-chip selected" data-min="10">10</button>
+        <button type="button" class="time-chip" data-min="15">15</button>
+        <button type="button" class="time-chip" data-min="20">20</button>
+      </div>
+    </div>
     <div class="field">
       <label for="inName">ชื่อ-นามสกุล</label>
       <input type="text" id="inName" placeholder="ชื่อของคุณ">
@@ -377,6 +395,8 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     { a: null, b: null, answer: -10, custom: '[ (−12) + (−5) ] <span class="op">+</span> 7 <span class="op">=</span> ?' }
   ];
   var TOTAL_SECONDS = 10 * 60;
+  var briefMinutesText = document.getElementById("briefMinutesText");
+  var timePickerBtns = document.querySelectorAll(".time-chip");
 
   /* ---- sound engine (synthesized, no audio files) ---- */
   var audioCtx = null;
@@ -721,6 +741,16 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
       teacherSubtitle.textContent = "โหลดข้อมูลไม่สำเร็จ";
     });
   }
+
+  timePickerBtns.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var min = parseInt(btn.dataset.min, 10);
+      TOTAL_SECONDS = min * 60;
+      timePickerBtns.forEach(function(b){ b.classList.toggle("selected", b === btn); });
+      if(briefMinutesText) briefMinutesText.textContent = min + " นาที";
+      timerText.textContent = fmtTime(TOTAL_SECONDS);
+    });
+  });
 
   document.getElementById("startBtn").addEventListener("click", startGame);
   if(muteBtn) muteBtn.addEventListener("click", function(){
