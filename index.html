@@ -565,6 +565,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   var secondsLeft = TOTAL_SECONDS;
   var timerId = null;
   var running = false;
+  var busy = false;
   var playerInfo = { name:"", classRoom:"", number:"" };
 
   function fmtTime(s){
@@ -589,6 +590,10 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   }
 
   function renderLevel(){
+    if(currentLevel >= LEVELS.length) return;
+    busy = false;
+    answerInput.disabled = false;
+    submitBtn.disabled = false;
     var lvl = LEVELS[currentLevel];
     levelNum.textContent = currentLevel + 1;
     if(lvl.custom){
@@ -663,7 +668,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   }
 
   function submitAnswer(){
-    if(!running) return;
+    if(!running || busy) return;
     var raw = answerInput.value.trim();
     if(raw === ""){
       feedback.textContent = "กรอกคำตอบก่อนนะ";
@@ -676,6 +681,9 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
       feedback.textContent = "ถูกต้อง! ปลดล็อกด่านนี้แล้ว";
       feedback.className = "feedback good";
       playCorrectSound();
+      busy = true;
+      answerInput.disabled = true;
+      submitBtn.disabled = true;
       currentLevel++;
       updatePips();
       if(currentLevel >= LEVELS.length){
