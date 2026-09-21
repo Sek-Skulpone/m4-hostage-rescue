@@ -399,6 +399,9 @@
     <div class="icon">⏱️</div>
     <h1>หมดเวลา!</h1>
     <p>น้ำท่วมถึงตัวประกันก่อนที่ภารกิจจะสำเร็จ — ไขได้ <span id="loseLevel">0</span> จาก 10 ด่าน ลองอีกครั้งไหม?</p>
+    <div class="stat-row">
+      <div class="stat"><div class="n eqn" id="loseTime">00:00</div><div class="l">เวลาที่ใช้</div></div>
+    </div>
     <button class="btn btn-rescue btn-block" id="restartBtnLose" type="button">ลองใหม่อีกครั้ง</button>
   </section>
 
@@ -543,6 +546,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   var waterlineLabel = document.getElementById("waterlineLabel");
   var winTime = document.getElementById("winTime");
   var loseLevel = document.getElementById("loseLevel");
+  var loseTime = document.getElementById("loseTime");
   var inName = document.getElementById("inName");
   var inGrade = document.getElementById("inGrade");
   var inRoom = document.getElementById("inRoom");
@@ -710,6 +714,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
       playWinFanfare();
     } else {
       loseLevel.textContent = currentLevel;
+      loseTime.textContent = fmtTime(timeUsedSeconds);
       updateWater();
       screenLose.hidden = false;
       playLoseSound();
