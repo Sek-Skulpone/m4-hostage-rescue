@@ -184,6 +184,8 @@
   .card p{ color:var(--ink-dim); margin:0 0 18px; }
   .card .icon{ font-size:2.6rem; margin-bottom:4px; }
   .stat-row{ display:flex; gap:10px; justify-content:center; margin:0 0 20px; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .btn-row .btn{ flex:1 1 160px; }
   .stat{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 16px; min-width:96px; }
   .stat .n{ font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:1.3rem; color:var(--rescue); }
   .stat .l{ font-size:.7rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; }
@@ -321,7 +323,10 @@
     <p id="teacherSubtitle">กำลังโหลดข้อมูล...</p>
     <div id="teacherSummaryWrap"></div>
     <div class="teacher-table-wrap" id="teacherTableWrap"></div>
-    <button class="btn btn-ghost btn-block" id="teacherBackBtn" type="button">กลับหน้าแรก</button>
+    <div class="btn-row">
+      <button class="btn btn-rescue" id="teacherExportBtn" type="button">ดาวน์โหลด Excel</button>
+      <button class="btn btn-ghost" id="teacherBackBtn" type="button">กลับหน้าแรก</button>
+    </div>
   </section>
 
   <!-- PLAY -->
@@ -410,6 +415,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 var firebaseConfig = {
   apiKey: "AIzaSyBxUTyhRGo8Sw5ugcxNjvSjfdGYi2F2LxY",
@@ -567,6 +573,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   var running = false;
   var busy = false;
   var playerInfo = { name:"", classRoom:"", number:"" };
+  var lastScoreRows = [];
 
   function fmtTime(s){
     var m = Math.floor(s/60), sec = s%60;
@@ -839,6 +846,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
         rows.push(v);
       });
       rows.reverse();
+      lastScoreRows = rows;
       if(rows.length === 0){
         teacherSubtitle.textContent = "ยังไม่มีนักเรียนเล่น";
         teacherTableWrap.innerHTML = '<p class="teacher-empty">ยังไม่มีข้อมูล</p>';
@@ -890,6 +898,49 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     });
   }
 
+  function exportScoresToExcel(){
+    if(typeof XLSX === "undefined"){
+      alert("โหลดตัวช่วยสร้างไฟล์ Excel ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่");
+      return;
+    }
+    if(!lastScoreRows.length){
+      alert("ยังไม่มีข้อมูลให้ดาวน์โหลด");
+      return;
+    }
+    var data = lastScoreRows.map(function(r){
+      var m = Math.floor((r.timeUsedSeconds||0)/60), s = (r.timeUsedSeconds||0)%60;
+      var timeStr = (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+      var cleared = r.levelsCleared!=null ? r.levelsCleared : 0;
+      var passed = (cleared / LEVELS.length) >= 0.7;
+      var dt = new Date(r.at || 0);
+      return {
+        "ชื่อ-นามสกุล": r.name || "",
+        "ชั้น": r.grade || r.classRoom || "",
+        "ห้อง": r.room || "",
+        "เลขที่": r.number || "",
+        "ผลลัพธ์": r.won ? "สำเร็จ" : "ไม่สำเร็จ",
+        "ด่านที่ทำได้": cleared,
+        "จากทั้งหมด": LEVELS.length,
+        "ผ่านเกณฑ์ 70%": passed ? "ผ่าน" : "ไม่ผ่าน",
+        "เวลาที่ใช้ (นาที:วินาที)": timeStr,
+        "เวลาที่ใช้ (วินาที)": r.timeUsedSeconds || 0,
+        "วันที่เล่น": dt.toLocaleDateString("th-TH", { dateStyle:"short" }),
+        "เวลาที่เล่น": dt.toLocaleTimeString("th-TH", { timeStyle:"short" })
+      };
+    });
+    var ws = XLSX.utils.json_to_sheet(data);
+    ws["!cols"] = [
+      {wch:22},{wch:8},{wch:8},{wch:8},{wch:10},
+      {wch:12},{wch:10},{wch:14},{wch:18},{wch:16},{wch:14},{wch:12}
+    ];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "คะแนน");
+    var today = new Date();
+    var pad = function(n){ return (n<10?"0":"")+n; };
+    var fname = "คะแนนช่วยตัวประกัน_" + today.getFullYear() + pad(today.getMonth()+1) + pad(today.getDate()) + ".xlsx";
+    XLSX.writeFile(wb, fname);
+  }
+
   timePickerBtns.forEach(function(btn){
     btn.addEventListener("click", function(){
       var min = parseInt(btn.dataset.min, 10);
@@ -914,6 +965,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
     screenTeacher.hidden = true;
     screenBriefing.hidden = false;
   });
+  document.getElementById("teacherExportBtn").addEventListener("click", exportScoresToExcel);
   submitBtn.addEventListener("click", submitAnswer);
   answerInput.addEventListener("keydown", function(e){
     if(e.key === "Enter"){ e.preventDefault(); submitAnswer(); }
