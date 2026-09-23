@@ -30,6 +30,9 @@
   .eqn{ font-variant-numeric:tabular-nums; }
 
   .stage{ max-width:520px; margin:0 auto; min-height:100vh; padding:20px 18px 40px; display:flex; flex-direction:column; gap:16px; }
+  @media (min-width:900px){
+    .stage.teacher-mode{ max-width:1200px; }
+  }
 
   /* ---- top status bar ---- */
   .statusbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
@@ -831,6 +834,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   function showTeacherView(){
     screenBriefing.hidden = true;
     screenTeacher.hidden = false;
+    if(stageEl) stageEl.classList.add("teacher-mode");
     teacherSubtitle.textContent = "กำลังโหลดข้อมูล...";
     teacherSummaryWrap.innerHTML = "";
     teacherTableWrap.innerHTML = "";
@@ -964,6 +968,7 @@ try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); }catch(e)
   document.getElementById("teacherBackBtn").addEventListener("click", function(){
     screenTeacher.hidden = true;
     screenBriefing.hidden = false;
+    if(stageEl) stageEl.classList.remove("teacher-mode");
   });
   document.getElementById("teacherExportBtn").addEventListener("click", exportScoresToExcel);
   submitBtn.addEventListener("click", submitAnswer);
